@@ -4,13 +4,18 @@ import "/style.scss";
 // Import all of Bootstrap's JS
 import * as bootstrap from "bootstrap";
 
-let tasklocal = JSON.parse(localStorage.getItem("tasks"));
+const getTask = async () => {
+  let tasklocal = await JSON.parse(localStorage.getItem("tasks"));
 
-if (tasklocal === null) {
-  tasklocal = [];
-}
+  if (tasklocal === null) {
+    tasklocal = [];
+  }
+  return tasklocal;
+};
 
-document.querySelector("#app").innerHTML = `
+const renderApp = async () => {
+  const tasklocal = await getTask();
+  document.querySelector("#app").innerHTML = `
     <div class="container py-4 px-3 mx-auto">
       <h1>Todo list</h1>
       <form action="" class="d-flex flex-column align-items-end">
@@ -25,12 +30,18 @@ document.querySelector("#app").innerHTML = `
      
     </div>
 `;
+};
+await renderApp();
+
+const form = document.querySelector("form");
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const tasklocal = await getTask();
+  addTask(tasklocal);
+});
 
 //ajouter une tache
-const form = document.querySelector("form");
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-
+const addTask = async (tasklocal) => {
   // value de ma tache
   const taskValue = document.querySelector("#task").value;
   //id
@@ -45,8 +56,8 @@ form.addEventListener("submit", (e) => {
   tasklocal.push(task);
   tasklocal = JSON.stringify(tasklocal);
   localStorage.setItem("tasks", tasklocal);
-  window.location.reload();
-});
+  await renderApp();
+};
 
 //delete event
 
@@ -63,7 +74,7 @@ const handleDelete = (id) => {
   tasklocal = newtab;
   tasklocal = JSON.stringify(tasklocal);
   localStorage.setItem("tasks", tasklocal);
-  window.location.reload();
+  renderApp();
 };
 
 buttons.forEach((btn) => {
@@ -72,7 +83,7 @@ buttons.forEach((btn) => {
   });
 });
 
-// tache deja effectuée
+// toggle de la checkBox
 const checkInput = Array.from(document.querySelectorAll("li input"));
 
 const handlecheck = (name) => {
@@ -82,7 +93,7 @@ const handlecheck = (name) => {
       el.task.taskCheck = !el.task.taskCheck;
       tasklocal = JSON.stringify(tasklocal);
       localStorage.setItem("tasks", tasklocal);
-      window.location.reload();
+      renderApp();
     }
   });
 };
@@ -91,5 +102,3 @@ checkInput.forEach((input) => {
     handlecheck(e.target.name);
   });
 });
-
-const modal = () => {};
