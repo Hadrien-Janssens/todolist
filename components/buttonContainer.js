@@ -11,7 +11,7 @@ export const buttonContainer = async () => {
   const notFinishedTask = await someOfNotFinishedTask();
 
   return `
-    <div class="my-3">
+    <div class="my-3" id="btn-container">
 ${button("total", someOfTask, " btn-primary ")}
 ${button("à faire", notFinishedTask, " btn-warning ")}
 ${button("terminée", FinishedTask, " btn-success ")}
