@@ -1,104 +1,73 @@
 // Import our custom CSS
+
+import { buttonContainer } from "./components/buttonContainer";
+import { addTaskSuccesMessage } from "./components/modale";
+import navbar from "./components/navbar";
 import renderTask from "./components/task";
+import { getTaskFromLocalStorage } from "./functions/localStorageManager";
+import {
+  handleDelete,
+  addTask,
+  handlecheck,
+  nombreDeTask,
+} from "./functions/taskManager";
 import "/style.scss";
 // Import all of Bootstrap's JS
 import * as bootstrap from "bootstrap";
 
-const getTask = async () => {
-  let tasklocal = await JSON.parse(localStorage.getItem("tasks"));
-
-  if (tasklocal === null) {
-    tasklocal = [];
-  }
-  return tasklocal;
-};
-
 const renderApp = async () => {
-  const tasklocal = await getTask();
+  const tasklocal = await getTaskFromLocalStorage("tasks");
   document.querySelector("#app").innerHTML = `
+ ${navbar()}
     <div class="container py-4 px-3 mx-auto">
       <h1>Todo list</h1>
       <form action="" class="d-flex flex-column align-items-end">
-        <input type="text" placeholder="ajouter un tâche ici" id="task" class="form-control" />
-        <button class="btn btn-primary my-3" type="submit" >Ajouter</button>
+        <input type="text" placeholder="ajouter un tâche ici ..." id="task" class="form-control fst-italic" />
+        <button class="btn btn-primary my-3" type="submit" data-bs-toggle="modal" data-bs-target="#exampleModal" >Ajouter</button>
+        ${addTaskSuccesMessage()}
       </form>
-      <h2>Liste des tâches</h2>
+
+
+<div class="d-flex align-items-center justify-content-between mt-5">
+      <div>
+        <h2>Liste des tâches</h2>
+        ${await buttonContainer()}
+        </div>
+      
+</div>
+
+    </button>
       <ul class="list-group">
         ${tasklocal.map((task) => renderTask(task)).join("")}
       </ul>
-
-     
     </div>
 `;
-};
-await renderApp();
 
-const form = document.querySelector("form");
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const tasklocal = await getTask();
-  addTask(tasklocal);
-});
-
-//ajouter une tache
-const addTask = async (tasklocal) => {
-  // value de ma tache
-  const taskValue = document.querySelector("#task").value;
-  //id
-  const id = Date.now();
-  let task = {
-    task: {
-      id: id,
-      taskName: taskValue,
-      taskCheck: false,
-    },
-  };
-  tasklocal.push(task);
-  tasklocal = JSON.stringify(tasklocal);
-  localStorage.setItem("tasks", tasklocal);
-  await renderApp();
-};
-
-//delete event
-
-const buttons = Array.from(document.querySelectorAll("li button"));
-
-const handleDelete = (id) => {
-  let newtab = [];
-  tasklocal.forEach((task) => {
-    if (task.task.id != id) {
-      newtab.push(task);
-    }
+  // ajouter la tache à l'evenement submit
+  const form = document.querySelector("form");
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    let tasklocal = await getTaskFromLocalStorage("tasks");
+    addTask(tasklocal);
+    renderApp();
   });
-  tasklocal = [];
-  tasklocal = newtab;
-  tasklocal = JSON.stringify(tasklocal);
-  localStorage.setItem("tasks", tasklocal);
-  renderApp();
-};
 
-buttons.forEach((btn) => {
-  btn.addEventListener("click", (e) => {
-    handleDelete(e.target.id);
-  });
-});
-
-// toggle de la checkBox
-const checkInput = Array.from(document.querySelectorAll("li input"));
-
-const handlecheck = (name) => {
-  console.log("check");
-  tasklocal.forEach((el) => {
-    if (el.task.id == name) {
-      el.task.taskCheck = !el.task.taskCheck;
-      tasklocal = JSON.stringify(tasklocal);
-      localStorage.setItem("tasks", tasklocal);
+  // supprimer la tache a l'evenement click sur la bouton supprimer
+  const buttons = Array.from(document.querySelectorAll("li button"));
+  buttons.forEach((btn) => {
+    btn.addEventListener("click", async (e) => {
+      await handleDelete(e.currentTarget.id);
       renderApp();
-    }
+    });
+  });
+
+  // toggle de la checkBox a l'evenement  click sur l'input checkbox
+  const checkInput = Array.from(document.querySelectorAll("li input"));
+  checkInput.forEach((checkInput) => {
+    checkInput.addEventListener("click", async (e) => {
+      await handlecheck(e.target.name);
+      renderApp();
+    });
   });
 };
-checkInput.forEach((input) => {
-  input.addEventListener("click", (e) => {
-    handlecheck(e.target.name);
-  });
-});
+renderApp();
